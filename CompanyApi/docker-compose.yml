@@ -1,0 +1,33 @@
+version: '3.8'
+services:
+    company_api:
+        container_name: company_api
+        image: companyapi
+        build:
+            context: .
+            dockerfile: Dockerfile
+        ports:
+            - "8080:8080"
+        environment:
+            - "ConnectionStrings__DefaultConnection=Host=db;Database=test_db;Username=test_user;Password=test_pass;"
+            - "ASPNETCORE_ENVIRONMENT=Development"
+        command: >
+            bash -c "dotnet ef database update &&
+                      dotnet run --urls http://*:8080"
+        depends_on:
+            - db
+
+    db:
+        container_name: db
+        image: postgres
+        environment:
+            POSTGRES_USER: test_user
+            POSTGRES_PASSWORD: test_pass
+            POSTGRES_DB: test_db
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+            - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
+volumes:
+    postgres_data: {}
